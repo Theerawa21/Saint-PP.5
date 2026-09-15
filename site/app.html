@@ -4175,7 +4175,7 @@ function attCurrentSubject(){return isSecMode()?getSjs().find(x=>x.id===attSjId(
 function attHoursKey(sjId){const id=sjId!==undefined?sjId:attSjId();return id?CK('attHours_'+id):CK('attHours');}
 function attHoursMap(t){return ld(t?CK('attHours_'+t.id):CK('attHours'),{});}
 function attHoursFilled(t){return Object.values(attHoursMap(t)).some(mo=>mo&&typeof mo==='object'&&Object.values(mo).some(v=>{const s=String(v??'').trim();return s!==''&&Number.isFinite(Number(s));}));}
-function attHoursRaw(t,mk,d){const v=attHoursMap(t)?.[mk]?.[d];if(v==null)return'';const n=Number(v);return Number.isFinite(n)?n:'';}
+function attHoursRaw(t,mk,d){const v=attHoursMap(t)?.[mk]?.[d];const s=String(v??'').trim();if(s==='')return '';const n=Number(s);return Number.isFinite(n)?n:'';}
 function attHoursSetDay(t,mk,d){return attHoursFilled(t)&&attHoursRaw(t,mk,d)!=='';}
 function attHoursShow(t,mk,d,sched){return attHoursFilled(t)?(attHoursSetDay(t,mk,d)?String(attHoursRaw(t,mk,d)):''):(sched==null?'':String(sched));}
 function attHoursNum(t,mk,d,sched){return attHoursFilled(t)?(attHoursSetDay(t,mk,d)?Number(attHoursRaw(t,mk,d)):0):(sched||0);}
