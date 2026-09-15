@@ -31,9 +31,9 @@ var STCloud = (() => {
   ));
   var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
 
-  // output/github-drive/vendor/scrypt-js/scrypt.js
+  // vendor/scrypt-js/scrypt.js
   var require_scrypt = __commonJS({
-    "output/github-drive/vendor/scrypt-js/scrypt.js"(exports, module) {
+    "vendor/scrypt-js/scrypt.js"(exports, module) {
       "use strict";
       (function(root) {
         const MAX_VALUE = 2147483647;
@@ -501,7 +501,7 @@ var STCloud = (() => {
     }
   });
 
-  // output/github-drive/backend/gas-entry.mjs
+  // backend/gas-entry.mjs
   var gas_entry_exports = {};
   __export(gas_entry_exports, {
     backup: () => backup,
@@ -510,7 +510,7 @@ var STCloud = (() => {
     rpc: () => rpc
   });
 
-  // output/github-drive/backend/school-config.mjs
+  // backend/school-config.mjs
   function schoolDate(value) {
     if (!value) return null;
     if (typeof value !== "string") return null;
@@ -534,7 +534,7 @@ var STCloud = (() => {
     return "";
   }
 
-  // output/github-drive/backend/indicator-model.mjs
+  // backend/indicator-model.mjs
   var outcomes = (item) => item.outcomes || [item.text];
   var planText = (plan) => plan.items.flatMap(outcomes).join("\n");
   var singleScore = (item) => item.entryMode === "total";
@@ -587,7 +587,7 @@ var STCloud = (() => {
     for (const stage of ["before", "after"]) if (!plan.items.some((i) => i.stage === stage)) throw Error("\u0E15\u0E49\u0E2D\u0E07\u0E21\u0E35\u0E07\u0E32\u0E19\u0E15\u0E31\u0E27\u0E0A\u0E35\u0E49\u0E27\u0E31\u0E14\u0E17\u0E31\u0E49\u0E07\u0E01\u0E48\u0E2D\u0E19\u0E41\u0E25\u0E30\u0E2B\u0E25\u0E31\u0E07\u0E01\u0E25\u0E32\u0E07\u0E20\u0E32\u0E04");
   }
 
-  // output/github-drive/backend/legacy-model.mjs
+  // backend/legacy-model.mjs
   var excluded = /* @__PURE__ */ new Set(["lk3_mode", "lk3_dark", "lk3_sb", "lk3_lastClass", "lk3_currentTeacher", "lk3_fbConfig", "lk3_pendingSyncQueue", "lk3_syncNotifiedClasses", "lk3_hasPrinted", "lk3_gutter", "lk3_cloudScope", "lk3_forceFreshCloudScope", "lk3_currentYear", "lk3_lastPullInfo", "lk3_lastPruneAt", "lk3_deviceId", "lk3_syncLeader", "lk3_role", "lk3_attTap", "lk3_mono"]);
   var prefixes = ["__max_", "__mmax_", "__fmax_", "__lock_", "__lockmid_", "__lockfin_"];
   function eligible(k) {
@@ -612,7 +612,7 @@ var STCloud = (() => {
     return data;
   }
 
-  // output/github-drive/backend/policy.mjs
+  // backend/policy.mjs
   function policy(authContext) {
     function access(u, id, write = false) {
       let p;
@@ -693,7 +693,7 @@ var STCloud = (() => {
     return { access, validateRecord, validate };
   }
 
-  // output/github-drive/backend/core.mjs
+  // backend/core.mjs
   var clone = (x) => JSON.parse(JSON.stringify(x));
   var fail = (status, message) => {
     throw Object.assign(Error(message), { status });
@@ -884,10 +884,10 @@ var STCloud = (() => {
     fail(404, "\u0E44\u0E21\u0E48\u0E1E\u0E1A\u0E04\u0E33\u0E2A\u0E31\u0E48\u0E07");
   }
 
-  // output/github-drive/backend/crypto.mjs
+  // backend/crypto.mjs
   var import_scrypt = __toESM(require_scrypt(), 1);
 
-  // output/github-drive/vendor/noble-ciphers/esm/utils.js
+  // vendor/noble-ciphers/esm/utils.js
   /*! noble-ciphers - MIT License (c) 2023 Paul Miller (paulmillr.com) */
   function isBytes(a) {
     return a instanceof Uint8Array || ArrayBuffer.isView(a) && a.constructor.name === "Uint8Array";
@@ -1037,7 +1037,7 @@ var STCloud = (() => {
     return Uint8Array.from(bytes2);
   }
 
-  // output/github-drive/vendor/noble-ciphers/esm/_polyval.js
+  // vendor/noble-ciphers/esm/_polyval.js
   var BLOCK_SIZE = 16;
   var ZEROS16 = /* @__PURE__ */ new Uint8Array(16);
   var ZEROS32 = u32(ZEROS16);
@@ -1229,7 +1229,7 @@ var STCloud = (() => {
   var ghash = wrapConstructorWithKey((key, expectedLength) => new GHASH(key, expectedLength));
   var polyval = wrapConstructorWithKey((key, expectedLength) => new Polyval(key, expectedLength));
 
-  // output/github-drive/vendor/noble-ciphers/esm/aes.js
+  // vendor/noble-ciphers/esm/aes.js
   var BLOCK_SIZE2 = 16;
   var BLOCK_SIZE32 = 4;
   var EMPTY_BLOCK = /* @__PURE__ */ new Uint8Array(BLOCK_SIZE2);
@@ -1441,7 +1441,7 @@ var STCloud = (() => {
     };
   });
 
-  // output/github-drive/backend/crypto.mjs
+  // backend/crypto.mjs
   var hex = (a) => Array.from(a, (x) => x.toString(16).padStart(2, "0")).join("");
   var bytes = (s) => {
     if (typeof s !== "string" || s.length % 2 || !/^[a-f0-9]+$/i.test(s)) throw Error("Invalid hexadecimal value");
@@ -1466,7 +1466,7 @@ var STCloud = (() => {
     return JSON.parse(decode2(gcm(bytes(key), bytes(envelope.iv)).decrypt(bytes(envelope.ciphertext))));
   }
 
-  // output/github-drive/backend/gas-entry.mjs
+  // backend/gas-entry.mjs
   if (typeof globalThis.setImmediate === "undefined") globalThis.setImmediate = () => {
     throw Error("Async crypto is not supported");
   };
