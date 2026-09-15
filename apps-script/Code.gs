@@ -638,6 +638,8 @@ var STCloud = (() => {
         if (kind === "desc") return rest.length === 1 && (data["lk3_" + cls.id + "_subjects"] || []).some((s) => s.id === rest[0]) && has(cls.id, rest[0]);
         if (kind.startsWith("attendance_")) return rest.length === 3 && student() && has(cls.id, kind.slice(11));
         if (kind === "attendance") return rest.length === 3 && student() && has(cls.id, "*");
+        if (kind === "attHours") return rest.length === 2 && has(cls.id, "*");
+        if (kind.startsWith("attHours_")) return rest.length === 2 && has(cls.id, kind.slice(9));
         if (has(cls.id, "*")) return /^(clubs|character(?:_t[12])?|reading(?:_t[12])?|activity(?:_t[12])?|competency(?:_t[12])?|pp6note|desc|indicators(?:_t[12])?|gradeFlag|roundOv)$/.test(kind);
         return false;
       }
@@ -681,6 +683,7 @@ var STCloud = (() => {
         }
       }
       if (/_attendance(?:_|$)/.test(root) && !["", "/", "\u0E1B", "\u0E25", "\u0E02", "-", "\u0E2A"].includes(v)) throw Error("\u0E2A\u0E16\u0E32\u0E19\u0E30\u0E40\u0E27\u0E25\u0E32\u0E40\u0E23\u0E35\u0E22\u0E19\u0E44\u0E21\u0E48\u0E16\u0E39\u0E01\u0E15\u0E49\u0E2D\u0E07");
+      if (/_attHours(?:_|$)/.test(root) && !(v === "" || Number.isFinite(Number(v)) && Number(v) >= 0 && Number(v) <= 24)) throw Error("\u0E0A\u0E31\u0E48\u0E27\u0E42\u0E21\u0E07\u0E40\u0E23\u0E35\u0E22\u0E19\u0E15\u0E49\u0E2D\u0E07\u0E40\u0E1B\u0E47\u0E19\u0E15\u0E31\u0E27\u0E40\u0E25\u0E02 0\u201324 \u0E2B\u0E23\u0E37\u0E2D\u0E40\u0E27\u0E49\u0E19\u0E27\u0E48\u0E32\u0E07");
     }
     function validate(v, d = 0) {
       if (d > 30) throw Error("\u0E02\u0E49\u0E2D\u0E21\u0E39\u0E25\u0E0B\u0E49\u0E2D\u0E19\u0E25\u0E36\u0E01\u0E40\u0E01\u0E34\u0E19\u0E44\u0E1B");

@@ -13,6 +13,8 @@ export function policy(authContext){
  if(kind==='desc')return rest.length===1&&(data['lk3_'+cls.id+'_subjects']||[]).some(s=>s.id===rest[0])&&has(cls.id,rest[0]);
  if(kind.startsWith('attendance_'))return rest.length===3&&student()&&has(cls.id,kind.slice(11));
  if(kind==='attendance')return rest.length===3&&student()&&has(cls.id,'*');
+ if(kind==='attHours')return rest.length===2&&has(cls.id,'*');
+ if(kind.startsWith('attHours_'))return rest.length===2&&has(cls.id,kind.slice(9));
  if(has(cls.id,'*'))return /^(clubs|character(?:_t[12])?|reading(?:_t[12])?|activity(?:_t[12])?|competency(?:_t[12])?|pp6note|desc|indicators(?:_t[12])?|gradeFlag|roundOv)$/.test(kind);
  return false;}
  return cs.some(c=>(data['lk3_'+c.id+'_subjects']||[]).some(s=>has(c.id,s.id)&&prefixes.some(p=>[1,2].some(t=>root===p+s.id+'_t'+t))));
@@ -31,6 +33,7 @@ export function policy(authContext){
  for(const t of [1,2]){const a=v['t'+t+'slots'];if(a!==undefined&&!Array.isArray(a))throw Error('รูปแบบคะแนนย่อยไม่ถูกต้อง');if(a?.length>1000)throw Error('คะแนนย่อยมากเกินไป');const plan=authContext.validation['lk3_'+cls.id+'_desc']?.[subjectId]?.scorePlan;if(plan)validateLinkedScores(plan,v);const max=plan?maxes(plan):authContext.validation['__max_'+subjectId+'_t'+t]||[];for(let i=0;i<(a||[]).length;i++)num(a[i],Number(max[i]??10));num(v['t'+t+'mraw'],Number(authContext.validation['__mmax_'+subjectId+'_t'+t]??100));num(v['t'+t+'fraw'],Number(authContext.validation['__fmax_'+subjectId+'_t'+t]??(cls.scoreMode==='p50'?20:cls.scoreMode==='p100'?50:100)));}
  }
  if(/_attendance(?:_|$)/.test(root)&&!['','/','ป','ล','ข','-','ส'].includes(v))throw Error('สถานะเวลาเรียนไม่ถูกต้อง');
+ if(/_attHours(?:_|$)/.test(root)&&!(v===''||(Number.isFinite(Number(v))&&Number(v)>=0&&Number(v)<=24)))throw Error('ชั่วโมงเรียนต้องเป็นตัวเลข 0–24 หรือเว้นว่าง');
  }
  function validate(v,d=0){if(d>30)throw Error('ข้อมูลซ้อนลึกเกินไป');if(v&&typeof v==='object')for(const[k,x]of Object.entries(v)){if(['__proto__','constructor','prototype'].includes(k))throw Error('ฟิลด์ไม่ถูกต้อง');validate(x,d+1);}if(typeof v==='string'&&(/[<>]/.test(v)||v.length>5000000))throw Error('ข้อความหรือขนาดไม่รองรับ');}
 return {access,validateRecord,validate};

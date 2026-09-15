@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="th">
-<head><link rel="icon" type="image/svg+xml" href="./favicon.svg"><script src="./cloud-config.js"></script><script src="./cloud-transport.js"></script><script>window.ST_MEMORY={};window.ST_STORE={getItem:k=>Object.hasOwn(ST_MEMORY,k)?ST_MEMORY[k]:null,setItem:(k,v)=>{ST_MEMORY[k]=String(v)},removeItem:k=>{delete ST_MEMORY[k]},clear:()=>{for(const k of Object.keys(ST_MEMORY))delete ST_MEMORY[k]}};Object.defineProperty(window,'localStorage',{value:new Proxy(ST_STORE,{ownKeys:()=>Object.keys(ST_MEMORY),getOwnPropertyDescriptor:()=>({enumerable:true,configurable:true})})});</script>
+<head><script src="./cloud-config.js"></script><script src="./cloud-transport.js"></script><script>window.ST_MEMORY={};window.ST_STORE={getItem:k=>Object.hasOwn(ST_MEMORY,k)?ST_MEMORY[k]:null,setItem:(k,v)=>{ST_MEMORY[k]=String(v)},removeItem:k=>{delete ST_MEMORY[k]},clear:()=>{for(const k of Object.keys(ST_MEMORY))delete ST_MEMORY[k]}};Object.defineProperty(window,'localStorage',{value:new Proxy(ST_STORE,{ownKeys:()=>Object.keys(ST_MEMORY),getOwnPropertyDescriptor:()=>({enumerable:true,configurable:true})})});</script>
+<link rel="icon" type="image/svg+xml" href="./favicon.svg">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="mobile-web-app-capable" content="yes">
@@ -4169,6 +4170,47 @@ function attTargetId(){
 function attSjId(){const tid=attTargetId();return(tid&&tid!=='__shared')?tid:null;}
 function attKey(sjId){const id=sjId!==undefined?sjId:attSjId();return id?CK('attendance_'+id):CK('attendance');}
 function getAtt(){return ld(attKey(),{});}
+// ── เวลาเรียนชั่วโมงต่อวัน: ครูกรอกเองใต้หัวตาราง (เมื่อกรอกแล้วใช้แทนตารางสอน ไม่เติม 1 อัตโนมัติ) ──
+function attCurrentSubject(){return isSecMode()?getSjs().find(x=>x.id===attSjId()):null;}
+function attHoursKey(sjId){const id=sjId!==undefined?sjId:attSjId();return id?CK('attHours_'+id):CK('attHours');}
+function attHoursMap(t){return ld(t?CK('attHours_'+t.id):CK('attHours'),{});}
+function attHoursFilled(t){return Object.values(attHoursMap(t)).some(mo=>mo&&typeof mo==='object'&&Object.values(mo).some(v=>{const s=String(v??'').trim();return s!==''&&Number.isFinite(Number(s));}));}
+function attHoursRaw(t,mk,d){const v=attHoursMap(t)?.[mk]?.[d];if(v==null)return'';const n=Number(v);return Number.isFinite(n)?n:'';}
+function attHoursSetDay(t,mk,d){return attHoursFilled(t)&&attHoursRaw(t,mk,d)!=='';}
+function attHoursShow(t,mk,d,sched){return attHoursFilled(t)?(attHoursSetDay(t,mk,d)?String(attHoursRaw(t,mk,d)):''):(sched==null?'':String(sched));}
+function attHoursNum(t,mk,d,sched){return attHoursFilled(t)?(attHoursSetDay(t,mk,d)?Number(attHoursRaw(t,mk,d)):0):(sched||0);}
+function attHoursSumFor(att,sid,t,range){
+  let n=0;const rec=att[sid]||{};
+  Object.entries(rec).forEach(([rmk,mo])=>{
+    Object.entries(mo||{}).forEach(([d,v])=>{
+      if(v!=='/')return;
+      const{y:ry,m:rm}=getMY(rmk),dt=new Date(ry,rm-1,parseInt(d));
+      if(range&&!(dt>=range.start&&(!range.end||dt<=range.end)))return;
+      n+=attHoursNum(t,rmk,parseInt(d),Number(sjSchedPeriods(t,dt.getDay()))||1);
+    });
+  });
+  return n;
+}
+function onAttHours(inp){
+  const t=attCurrentSubject();if(!t)return;
+  const d=Number(inp.dataset.d)||0,key=attHoursKey(t.id),h=ld(key,{});
+  if(!h[MONTH])h[MONTH]={};
+  const raw=inp.value.trim(),n=Number(raw);
+  const val=(raw!==''&&Number.isFinite(n)&&n>=0&&n<=24)?String(Math.round(n*10)/10):'';
+  h[MONTH][d]=val;sv(key,h);syncUpPath(key,MONTH+'/'+d,val);
+  attRefreshHrsCells();
+}
+function attRefreshHrsCells(){
+  const t=attCurrentSubject();if(!t)return;
+  const fullHrs=sjHours(t),att=getAtt(),range=isSecMode()?termRange(TERM):null;
+  document.querySelectorAll('#attWrap tr[data-sid]').forEach(tr=>{
+    const sid=tr.getAttribute('data-sid'),cell=document.getElementById('att-hrs-'+sid);
+    if(!cell)return;
+    const h=attHoursSumFor(att,sid,t,range);
+    const pct=fullHrs?Math.round(h/fullHrs*100):0,low=fullHrs&&pct<80;
+    cell.innerHTML=`<b style="color:${low?'var(--red)':'var(--accent)'}">${h}</b>/${fullHrs} ชม. ${fullHrs?`(${pct}%)`:''}${low?' ⚠️':''}`;
+  });
+}
 // เวลาเรียนที่บันทึกไว้ "นอกภาคเรียนที่วิชานั้นเปิดสอน" — ไม่มีที่ไหนนับให้เลย
 // เกิดได้จริงเมื่อครูกรอกเวลาเรียนไว้ก่อน แล้วมาตั้งภาคเรียนของวิชาทีหลัง (หรือตั้งผิดภาค)
 // สำคัญเพราะเวลาเรียนคือตัวตัดสิทธิ์สอบปลายภาค (เกณฑ์ 80%) — เงียบไว้ไม่ได้
@@ -4328,20 +4370,8 @@ function renderAttTable(){
   const attSjCur=isSec?getSjs().find(x=>x.id===attSjId()):null;
   const fullHrs=attSjCur?sjHours(attSjCur):0;
   const curTermRange=isSec?termRange(TERM):null;
-  // นับเวลาเรียนตามตารางสอน: วันที่มีคาบคู่/คาบสาม ให้ "/" นับหลายชั่วโมงตามจริง ไม่ใช่นับ 1 เสมอ
-  const termHrsOf=sid=>{
-    let n=0;const rec=att[sid]||{};
-    Object.entries(rec).forEach(([rmk,mo])=>{
-      Object.entries(mo||{}).forEach(([d,v])=>{
-        if(v!=='/')return;
-        const{y:ry,m:rm}=getMY(rmk);
-        const dt=new Date(ry,rm-1,parseInt(d));
-        if(curTermRange&&!(dt>=curTermRange.start&&(!curTermRange.end||dt<=curTermRange.end)))return;
-        n+=sjSchedPeriods(attSjCur,dt.getDay());
-      });
-    });
-    return n;
-  };
+  // นับเวลาเรียน: ชั่วโมงต่อวันใช้ที่ครูกรอกใต้หัวตาราง ถ้ายังไม่เคยกรอกเลยใช้ตารางสอนเดิม
+  const termHrsOf=sid=>attHoursSumFor(att,sid,attSjCur,curTermRange);
 
   const dCols=[];
   for(let d=1;d<=days;d++){
@@ -4360,6 +4390,7 @@ function renderAttTable(){
       <div style="font-size:11px">${d}${special?'<span class="sp-mk">★</span>':''}</div>
       <div style="font-size:9px;color:var(--accent)">${DOW[dt.getDay()]}</div>
       ${order?`<div class="dord">${order}</div>`:''}
+      ${attSjCur?`<input class="ah" data-d="${d}" value="${attHoursShow(attSjCur,mk,d,Number(sjSchedPeriods(attSjCur,dt.getDay()))||1)}" inputmode="decimal" min="0" max="24" onclick="event.stopPropagation()" oninput="onAttHours(this)" onchange="renderAttTable()" title="ชั่วโมงเรียนวันนี้ — กรอกเองได้ ถ้าเวลาเรียนไม่เท่ากัน (ลบออก = เว้นว่าง)" style="width:24px;max-width:24px;font-size:10px;text-align:center;padding:0;margin-top:1px;border:0;border-bottom:1px dashed var(--accent);background:transparent;color:var(--text)">`:''}
     </th>`;
   }).join('');
 
@@ -4378,10 +4409,10 @@ function renderAttTable(){
       const h=termHrsOf(s.id);
       const pct=fullHrs?Math.round(h/fullHrs*100):0;
       const low=fullHrs&&pct<80;
-      hrsCell=`<td class="att-sum" style="white-space:nowrap;${low?'color:var(--red)':''}" title="เวลาเรียนภาคเรียนที่ ${TERM} ของวิชานี้ (ต้องไม่น้อยกว่า 80% จึงมีสิทธิ์สอบปลายภาค) — นับแยกอิสระจากอีกภาคเรียน">
+      hrsCell=`<td id="att-hrs-${s.id}" class="att-sum" style="white-space:nowrap;${low?'color:var(--red)':''}" title="เวลาเรียนภาคเรียนที่ ${TERM} ของวิชานี้ (ต้องไม่น้อยกว่า 80% จึงมีสิทธิ์สอบปลายภาค) — นับแยกอิสระจากอีกภาคเรียน">
         <b style="color:${low?'var(--red)':'var(--accent)'}">${h}</b>/${fullHrs} ชม. ${fullHrs?`(${pct}%)`:''}${low?' ⚠️':''}</td>`;
     }
-    return`<tr>
+    return`<tr data-sid="${s.id}">
       <td class="tc nc" style="min-width:28px;font-size:11px">${s.no}</td>
       <td class="nc">${s.prefix}${s.fname}</td>
       ${cells}
@@ -8121,18 +8152,19 @@ function bkSaintAttendanceModel(sj,term){
     const inside=d>=start&&d<=end;
     if(i>=5&&!(inside&&(isSpecial(d)||anyMark(d))))continue;
     const school=inside&&(isSchoolDay(d)||isSpecial(d)||(i>=5&&anyMark(d)));
-    const open=school&&(sjIsScheduledDay(sj,d.getDay())||anyMark(d));
-    days.push({date:d,inside,open,periods:open?(Number(sjSchedPeriods(sj,d.getDay()))||1):0});
+    const mk=bkPad2(d.getMonth()+1),dd=d.getDate();
+    const open=school&&(sjIsScheduledDay(sj,d.getDay())||anyMark(d)||attHoursSetDay(sj,mk,dd));
+    days.push({date:d,inside,open,periods:open?attHoursShow(sj,mk,dd,Number(sjSchedPeriods(sj,d.getDay()))||1):'',periodsN:open?attHoursNum(sj,mk,dd,Number(sjSchedPeriods(sj,d.getDay()))||0):0});
    }
    weeks.push({number:weeks.length+1,days});
   }
  }
- while(weeks.length<20)weeks.push({number:weeks.length+1,days:Array.from({length:5},()=>({date:null,inside:false,open:false,periods:0}))});
+ while(weeks.length<20)weeks.push({number:weeks.length+1,days:Array.from({length:5},()=>({date:null,inside:false,open:false,periods:0,periodsN:0}))});
  students.forEach(s=>{
   let present=0,recorded=0,missing=0;
   weeks.forEach(w=>w.days.forEach(day=>{
    if(!day.open)return;const mark=value(s,day.date);
-   if(mark==='/')present+=day.periods;
+   if(mark==='/')present+=day.periodsN;
    if(marks.includes(mark))recorded++;
    else if(mark!=='-')missing++;
   }));
@@ -8299,7 +8331,7 @@ function bkBuildAttendance(ctx,startMo,totalWeeks,firstW,midW,def,sj,term){
   };
   const isOffDay=d=>{
     if(!isSchoolDay(d)&&!isSpecial(d))return true;
-    if(sj&&!sjIsScheduledDay(sj,d.getDay())&&!dayHasData(d))return true;
+    if(sj&&!sjIsScheduledDay(sj,d.getDay())&&!dayHasData(d)&&!attHoursSetDay(sj,bkPad2(d.getMonth()+1),d.getDate()))return true;
     return false;
   };
   const fullHrs=sj?sjHours(sj):0;
@@ -8315,7 +8347,7 @@ function bkBuildAttendance(ctx,startMo,totalWeeks,firstW,midW,def,sj,term){
       const mk=bkPad2(d.getMonth()+1);
       const dd=d.getDate();
       const val=(attData[stu.id]?.[mk]?.[dd])||def;
-      if(val==='/'){ma++;hrs+=sjSchedPeriods(sj,d.getDay());}
+      if(val==='/'){ma++;hrs+=sj?attHoursNum(sj,mk,dd,Number(sjSchedPeriods(sj,d.getDay()))||1):1;}
       else if(val==='ป')pa++;
       else if(val==='ล')la++;
       else if(val==='ข')kh++;
