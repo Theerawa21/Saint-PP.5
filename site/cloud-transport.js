@@ -5,7 +5,7 @@ function ready(){if(readyPromise)return readyPromise;readyPromise=new Promise((r
  if(!/^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]+\/exec$/.test(endpoint)){reject(Error('ระบบออนไลน์กำลังเตรียมการเชื่อม Google Drive กรุณาใช้เว็บเดิมก่อน'));return;}
  const timer=setTimeout(()=>reject(Error('เชื่อม Google ไม่สำเร็จ กรุณาตรวจการเผยแพร่ Apps Script')),30000);
  window.addEventListener('message',e=>{const d=e.data;if(!d||d.channel!==channel)return;
-  if(d.type==='st-ready'&&/^https:\/\/[a-z0-9-]+\.script\.googleusercontent\.com$/.test(e.origin)&&!peer){peer=e.source;peerOrigin=e.origin;clearTimeout(timer);resolve();}
+  if(d.type==='st-ready'&&(/^https:\/\/[a-z0-9-]+\.script\.googleusercontent\.com$/.test(e.origin)||/^https:\/\/[a-z0-9-]+-script\.googleusercontent\.com$/.test(e.origin))&&!peer){peer=e.source;peerOrigin=e.origin;clearTimeout(timer);resolve();}
   else if(d.type==='st-result'&&e.source===peer&&e.origin===peerOrigin&&pending.has(d.id)){const p=pending.get(d.id);pending.delete(d.id);clearTimeout(p.timer);p.resolve(d.result);}
  });
  iframe=document.createElement('iframe');iframe.hidden=true;iframe.title='การเชื่อมฐานข้อมูลโรงเรียน';iframe.src=endpoint+'?channel='+channel;document.body.append(iframe);
