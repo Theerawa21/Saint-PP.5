@@ -1,0 +1,7 @@
+node_modules/
+vendor/
+private/
+**/*.sqlite*
+*.key
+.env*
+*.zip
