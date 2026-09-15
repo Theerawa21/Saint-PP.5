@@ -1,0 +1,9 @@
+<!doctype html><html><head><meta charset="utf-8"></head><body><script>
+const allowed=<?!= JSON.stringify(origin) ?>,channel=<?!= JSON.stringify(channel) ?>;
+window.addEventListener('message',e=>{
+ if(e.source!==window.top||e.origin!==allowed||e.data?.channel!==channel||e.data?.type!=='st-rpc')return;
+ const {id,request}=e.data;
+ google.script.run.withSuccessHandler(result=>window.top.postMessage({type:'st-result',channel,id,result},allowed)).withFailureHandler(()=>window.top.postMessage({type:'st-result',channel,id,result:{status:503,body:{error:'เชื่อมต่อ Google ไม่สำเร็จ กรุณาลองใหม่'}}},allowed)).stRpc({...request,origin:allowed});
+});
+window.top.postMessage({type:'st-ready',channel},allowed);
+</script></body></html>
